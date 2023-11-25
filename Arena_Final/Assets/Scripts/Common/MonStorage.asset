@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28ae86e4edcc3dd4fa9ae06c7cf24c4a, type: 3}
+  m_Name: MonStorage
+  m_EditorClassIdentifier: 
+  characterImg:
+  - {fileID: 21300000, guid: d372440e27a33b047ac5a30cc6d3c979, type: 3}
+  - {fileID: 21300000, guid: 85dbf7e87dad63b48a9877b67ef05381, type: 3}
+  - {fileID: 21300000, guid: ce7797b190e21b54aa500d8ef0da174b, type: 3}
+  - {fileID: 21300000, guid: 7c2f006762e67c64a8834d82286a9367, type: 3}
+  - {fileID: 21300000, guid: 685db2e3c0fd9e841a753283cb886d3f, type: 3}
+  - {fileID: 21300000, guid: 457c18665c3e877468222ff6a45e209f, type: 3}
+  - {fileID: 21300000, guid: 6bde0e84a3152e14ea02a65235eca32b, type: 3}
+  - {fileID: 21300000, guid: 1e60c82ee8205bc449f444eb6fd4bbf2, type: 3}
+  - {fileID: 21300000, guid: d8799f0dab5d96f4f9062fd3251b7948, type: 3}
+  - {fileID: 21300000, guid: 76b2c9fc369bc6f4fa223208c2f152fb, type: 3}
+  - {fileID: 21300000, guid: 07feb1795ef9a3b408cb1d541bd3f983, type: 3}
+  - {fileID: 21300000, guid: a938619121394004cbfda6c1d7e71b7e, type: 3}
+  - {fileID: 21300000, guid: 1313b59ad781d8d429478ac92718feb7, type: 3}
+  - {fileID: 21300000, guid: 448fd9c13123efe429daa4aa289c65ed, type: 3}
+  - {fileID: 21300000, guid: 5a7558fda84890a40991f16bbc328d90, type: 3}
+  - {fileID: 21300000, guid: 9f9fcbbc7f40d89499a390b217534bf2, type: 3}
+  - {fileID: 21300000, guid: a3c4e3a39146d7d429f2ca3c85dee856, type: 3}
+  - {fileID: 21300000, guid: 112c48ad71ab8dc41a8d8b8a42b768d1, type: 3}
+  - {fileID: 21300000, guid: 9e1b53cdb5338674586e6e55f3a3080b, type: 3}
+  - {fileID: 21300000, guid: e20f81ecd06479749882537119c196a9, type: 3}
+  monstersImg:
+  - {fileID: 21300000, guid: 716144d59d27d38409ae68a58ec8029f, type: 3}
+  - {fileID: 21300000, guid: 9fbafd118bdd36344b680f43d7660e63, type: 3}
+  - {fileID: 21300000, guid: 9d34e4e1fec41884a8470241e7c5b4d7, type: 3}
+  - {fileID: 21300000, guid: d4a3657fcfeb8f34eaf71533cffef218, type: 3}
+  - {fileID: 21300000, guid: 435196629e89d3343b5d7502f0030fea, type: 3}
+  monstersObj:
+  - {fileID: 1763832815635720, guid: c20f634f7c152174fa762c7e6d8809fa, type: 3}
+  - {fileID: 2068659927503292821, guid: 6d30ae6f59058ea4790c0d9389de2ac9, type: 3}
+  - {fileID: 4584542326955490933, guid: 2e50d87e21afb114ba35732a1568f22f, type: 3}
+  - {fileID: 5315905706146667703, guid: 40797dbbb51cffa43b860e88a6597215, type: 3}
+  - {fileID: 1339689997271532270, guid: 789ab4ac005990641919652bb06c68e9, type: 3}
+  monstersSkGroup:
+  - {fileID: 6501243730415368157, guid: 98cb5af003d293e4c8502eec4d3a3da7, type: 3}
+  - {fileID: 738574532774806184, guid: cac9019bd9ce4ea43868a4758aba629b, type: 3}
+  - {fileID: 5636324435708295756, guid: 542a57d6d407d604d8fda16a2d72c8be, type: 3}
+  - {fileID: 3557254926626686509, guid: 27a055189ebab254eaae2d4b2ffe8dcf, type: 3}
+  - {fileID: 1280259361162606517, guid: e4aa2446662e0fb448e78a218240807c, type: 3}
+  monSlot:
+  - {fileID: 6141544064638849244, guid: cd4046a7af54ef349bb74452cbf5b1fe, type: 3}
+  - {fileID: 6984308415962013795, guid: b2859ee29239fc44683eb98bceb45c3c, type: 3}
+  - {fileID: 4517916761363551211, guid: 19b74a7da44051b4bac7055ad3719adb, type: 3}
+  - {fileID: 6086517977164631973, guid: b80444156306c274ea972b4c5a48ee86, type: 3}
+  - {fileID: 6875850195831167881, guid: ac284d6bce8e3814cb5923b8a7fc0706, type: 3}
+  - {fileID: 6337570252669661651, guid: 64020ede63f84074e808cbc660776026, type: 3}
