@@ -248,7 +248,7 @@ public class NetworkMgr : MonoBehaviour
 
         WWWForm a_Form = new();
         a_Form.AddField("Input_UID", PlayerInfo.UniqueID.ToString());
-        a_Form.AddField("AutoExpTime", PlayerInfo.AutoExpTime.ToString());
+        a_Form.AddField("AutoExpTime", PlayerInfo.AutoExpTime.ToString("yyyy-MM-dd HH:mm:ss"));
 
         //--------- 서버 연결 요청
         UnityWebRequest a_www = UnityWebRequest.Post(autoExpSaveURL, a_Form);
