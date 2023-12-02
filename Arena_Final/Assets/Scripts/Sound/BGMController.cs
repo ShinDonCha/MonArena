@@ -18,7 +18,7 @@ public class BGMController : MonoBehaviour
     [SerializeField]
     private AudioClip rankLobbyBGM = null;  //랭킹전 로비에서 재생되는 배경음
 
-    private readonly float defaultVolume = 0.2f; //BGM을 재생할 볼륨 크기
+    private readonly float defaultVolume = 0.2f; //BGM을 재생할 기본 볼륨 크기
     private readonly float minVolume = 0.0f;     //BGM교체시 필요한 최저 볼륨 크기
     private readonly float vChangeTime = 1.2f;   //볼륨을 조절할 시간(1.0f일 때 1초, 2.0f일 때 0.5초..)
 
@@ -29,7 +29,8 @@ public class BGMController : MonoBehaviour
     {
         Instance = this;
         BGMAudio = GetComponent<AudioSource>();
-        DontDestroyOnLoad(this);        //씬이 넘어가도 꺼지지 않도록 변경
+        BGMAudio.volume = defaultVolume;         //기본 볼륨으로 설정
+        DontDestroyOnLoad(this);                 //씬이 넘어가도 꺼지지 않도록 변경
     }   
 
     public void BGMChange(BGMList ReqBGM)       //요청받은 배경음악으로 변경하는 함수

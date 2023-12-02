@@ -28,11 +28,14 @@ public class EffSoundCtrl : MonoBehaviour
     [SerializeField]
     private AudioClip evolveClip = null;            //몬스터 진화 시 재생되는 효과음
 
+    private readonly float defaultVolume = 0.15f;   //효과음을 재생할 기본 볼륨 크기
+
     private void Awake()
     {
         Instance = this;
         effAudio = GetComponent<AudioSource>();
-        DontDestroyOnLoad(this);        //씬이 넘어가도 꺼지지 않도록 변경
+        effAudio.volume = defaultVolume;            //기본 볼륨으로 설정
+        DontDestroyOnLoad(this);                    //씬이 넘어가도 꺼지지 않도록 변경
     }
 
     public void EffSoundPlay(EffSoundList ReqEffSound)  //효과음 재생 함수(효과음 재생이 필요한곳에서 실행요청)
