@@ -9,6 +9,9 @@ public class ZomUltiCtrl : MonoBehaviour
     [SerializeField]
     private GameObject damageDummy = null;   //범위내 적에게 대미지를 주는 더미 (하위의 ZomUltiDummy)
 
+    private readonly WaitForSeconds onSeconds = new(0.1f);       //적에게 대미지를 입힐 수 있는 시간
+    private readonly WaitForSeconds offSeconds = new(0.4f);      //적에게 대미지를 입히지 못하는 시간
+
     private void Awake()
     {
         tag = transform.parent.tag;         //태그 변경
@@ -25,9 +28,9 @@ public class ZomUltiCtrl : MonoBehaviour
         while (true)
         {
             damageDummy.SetActive(true);
-            yield return new WaitForSeconds(0.1f);
+            yield return onSeconds;
             damageDummy.SetActive(false);
-            yield return new WaitForSeconds(0.4f);
+            yield return offSeconds;
         }
     }
 
