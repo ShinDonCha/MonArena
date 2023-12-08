@@ -22,6 +22,9 @@ public class SkillInformCtrl : MonoBehaviour, IPointerClickHandler
     private Color32 defaultColor = new(255, 255, 255, 255);     //기본 버튼의 색상
     private Color32 selectColor = new(130, 130, 130, 255);      //선택된 버튼의 색상
 
+    private readonly string explainfmt1 = "{0}\n<color=#0D47A1>{1}</color>\n\n";  //스킬 정보(동작 설명)을 표시할 문자열 서식
+    private readonly string explainfmt2 = "<color=#FF0000>{0} :</color> {1}"; //스킬 정보(쿨타임, 범위 등)를 표시할 문자열 서식
+
     private void Awake()
     {
         monStat = PlayerInfo.MonList[FindClass.MISelNum];    //현재 보고있는 몬스터의 스탯 받아오기
@@ -66,30 +69,29 @@ public class SkillInformCtrl : MonoBehaviour, IPointerClickHandler
                 {
                     case ExplainList.Ultimate:
                         nameText.text = "<color=#ffff00>핵폭발</color>";
-                        explainText.text = "목표를 조준하여 핵미사일을 유도한다.\n핵미사일은 땅에 부딪혀 폭발하여 주변에 있는 적들에게 피해를 준다.\n\n" +
-                                            "<color=#ff0000>범위 :</color> 폭발로부터 " + a_SoldierCtrl.SolUltiRadius + " 거리\n" +
-                                            "<color=#ff0000>대미지 :</color> " + a_SoldierCtrl.GetUltiDmg(StarF);
+                        explainText.text = string.Format(explainfmt1, "목표를 조준하여 핵미사일을 유도한다.", "핵미사일은 땅에 부딪혀 폭발하여 주변에 있는 적들에게 피해를 준다.") +
+                                            string.Format(explainfmt2, "범위", "폭발로부터 " + a_SoldierCtrl.SolUltiRadius + " 거리\n") +
+                                            string.Format(explainfmt2, "대미지", a_SoldierCtrl.GetUltiDmg(StarF));
                         break;
 
                     case ExplainList.Skill1:
                         nameText.text = "약물 투여";
-                        explainText.text = "자신에게 약물을 투여하여 신진대사를 활성화한다.\n궁극기 게이지가 충전되고 그 반동으로 일정량의 HP가 감소한다.\n\n" +
-                                            "<color=#ff0000>발동 확률 :</color> " + a_SoldierCtrl.SkSet.Prob[(int)Skill.Sk1] + "%\n" +
-                                            "<color=#ff0000>게이지 충전량 :</color> " + a_SoldierCtrl.SolSk1UltiG + "\n" +
-                                            "<color=#ff0000>소모 HP :</color> 현재 체력의 " + a_SoldierCtrl.GetDecRatio(StarF) * 100 + "%\n" +
-                                            "<color=#ff0000>범위 :</color> 자기 자신\n" +
-                                            "<color=#ff0000>쿨타임 :</color> " + a_SoldierCtrl.SkSet.Cool[(int)Skill.Sk1] + "초";
+                        explainText.text = string.Format(explainfmt1, "자신에게 약물을 투여하여 신진대사를 활성화한다.", "궁극기 게이지가 충전되고 그 반동으로 일정량의 HP가 감소한다.") +
+                                           string.Format(explainfmt2, "발동 확률", a_SoldierCtrl.SkSet.Prob[(int)Skill.Sk1] + "%\n") +
+                                           string.Format(explainfmt2, "게이지 충전량", a_SoldierCtrl.SolSk1UltiG + "\n") +
+                                           string.Format(explainfmt2, "범위", "자기 자신\n") +
+                                           string.Format(explainfmt2, "쿨타임", a_SoldierCtrl.SkSet.Cool[(int)Skill.Sk1] + "초");
                         break;
 
                     case ExplainList.Skill2:
                         nameText.text = "지원요청";
-                        explainText.text = "지원사격을 해줄 드론 4대를 호출한다.\n드론은 전방으로 이동하며 적을 발견하면 공격을 가한다.\n\n" +
-                                            "<color=#ff0000>발동 확률 :</color> " + a_SoldierCtrl.SkSet.Prob[(int)Skill.Sk2] + "%\n" +
-                                            "<color=#ff0000>범위 :</color> 일직선상에 있는 무작위 적군\n" +
-                                            "<color=#ff0000>드론 지속시간 :</color> " + a_SoldierCtrl.DronLifeT + "초\n" +
-                                            "<color=#ff0000>드론 공격속도 :</color> 초당 " + 1 / a_SoldierCtrl.DronASpd + "발\n" +
-                                            "<color=#ff0000>드론 대미지 :</color> 발당 " + a_SoldierCtrl.GetDronDmg(StarF) + "\n" +
-                                            "<color=#ff0000>쿨타임 :</color> " + a_SoldierCtrl.SkSet.Cool[(int)Skill.Sk2] + "초";
+                        explainText.text = string.Format(explainfmt1, "지원사격을 해줄 드론 4대를 호출한다.", "드론은 전방으로 이동하며 적을 발견하면 공격을 가한다.") +
+                                           string.Format(explainfmt2, "발동 확률", a_SoldierCtrl.SkSet.Prob[(int)Skill.Sk2] + "%\n") +
+                                           string.Format(explainfmt2, "범위", "일직선상에 있는 무작위 적군\n") +
+                                           string.Format(explainfmt2, "드론 지속시간", a_SoldierCtrl.DronLifeT + "초\n") +
+                                           string.Format(explainfmt2, "드론 공격속도", "초당 " + 1 / a_SoldierCtrl.DronASpd + "발\n") +
+                                           string.Format(explainfmt2, "드론 대미지", "발당 " + a_SoldierCtrl.GetDronDmg(StarF) + "\n") +
+                                           string.Format(explainfmt2, "쿨타임", a_SoldierCtrl.SkSet.Cool[(int)Skill.Sk2] + "초");
                         break;
                 }
                 break;
@@ -101,32 +103,32 @@ public class SkillInformCtrl : MonoBehaviour, IPointerClickHandler
                 {
                     case ExplainList.Ultimate:
                         nameText.text = "<color=#ffff00>끝없는 갈증</color>";
-                        explainText.text = "피에 대한 끝없는 갈증으로 주위로부터 생명력을 빼앗는다.\n범위 내의 적들에게 피해를 주고 피해량의 일부를 자신의 체력으로 전환한다.\n\n" +
-                                            "<color=#ff0000>지속시간 :</color> " + a_ZombieCtrl.ZomUltiTime + "초\n" +
-                                            "<color=#ff0000>범위 :</color> 자신으로부터 " +  a_ZombieCtrl.ZomUltiRadius + " 거리\n" +
-                                            "<color=#ff0000>체력전환율 :</color> " + a_ZombieCtrl.ZomUltiRatio * 100 + "%\n" +
-                                            "<color=#ff0000>대미지 :</color> 초당 " + a_ZombieCtrl.GetUltiDmg(StarF);
+                        explainText.text = string.Format(explainfmt1, "피에 대한 끝없는 갈증으로 주위로부터 생명력을 빼앗는다.", "범위 내의 적들에게 피해를 주고 피해량의 일부를 자신의 체력으로 전환한다.") +
+                                           string.Format(explainfmt2, "지속시간", a_ZombieCtrl.ZomUltiTime + "초\n") +
+                                           string.Format(explainfmt2, "범위", "자신으로부터 " + a_ZombieCtrl.ZomUltiRadius + " 거리\n") +
+                                           string.Format(explainfmt2, "체력전환율", a_ZombieCtrl.ZomUltiRatio * 100 + "%\n") +
+                                           string.Format(explainfmt2, "대미지", "초당 " + a_ZombieCtrl.GetUltiDmg(StarF));
                         break;
 
                     case ExplainList.Skill1:
                         nameText.text = "감염";
-                        explainText.text = "적을 물어 감염시킨다.\n감염된 적은 피해를 입고 일정 시간 약화된다.\n\n" +
-                                            "<color=#ff0000>발동 확률 :</color> " + a_ZombieCtrl.SkSet.Prob[(int)Skill.Sk1] + "%\n" +
-                                            "<color=#ff0000>지속시간 :</color> " + a_ZombieCtrl.ZomSk1SusTime + "초\n" +
-                                            "<color=#ff0000>범위 :</color> 현재 공격 중인 대상\n" +
-                                            "<color=#ff0000>방/마저 감소량 :</color> " + a_ZombieCtrl.GetSk1ReduVal(StarF) + "\n" +
-                                            "<color=#ff0000>대미지 :</color> " + a_ZombieCtrl.GetSk1Dmg(StarF) + "\n" +
-                                            "<color=#ff0000>쿨타임 :</color> " + a_ZombieCtrl.SkSet.Cool[(int)Skill.Sk1] + "초";
+                        explainText.text = string.Format(explainfmt1, "적을 물어 감염시킨다.", "감염된 적은 피해를 입고 일정 시간 약화된다.") +
+                                           string.Format(explainfmt2, "발동 확률", a_ZombieCtrl.SkSet.Prob[(int)Skill.Sk1] + "%\n") +
+                                           string.Format(explainfmt2, "지속시간", a_ZombieCtrl.ZomSk1SusTime + "초\n") +
+                                           string.Format(explainfmt2, "범위", "현재 공격 중인 대상\n") +
+                                           string.Format(explainfmt2, "방/마저 감소량", a_ZombieCtrl.GetSk1ReduVal(StarF) + "\n") +
+                                           string.Format(explainfmt2, "대미지", a_ZombieCtrl.GetSk1Dmg(StarF) + "\n") +
+                                           string.Format(explainfmt2, "쿨타임", a_ZombieCtrl.SkSet.Cool[(int)Skill.Sk1] + "초");
                         break;
 
                     case ExplainList.Skill2:
                         nameText.text = "포효";
-                        explainText.text = "괴성을 내질러 적들의 주의를 끈다.\n일정 거리 안에 있는 적을 도발해 공격력을 감소시키고 자신을 공격하게 한다.\n\n" +
-                                            "<color=#ff0000>발동 확률 :</color> " + a_ZombieCtrl.SkSet.Prob[(int)Skill.Sk2] + "%\n" +
-                                            "<color=#ff0000>지속시간 :</color> " + a_ZombieCtrl.ZomSk2SusTime + "초\n" +
-                                            "<color=#ff0000>범위 :</color> 자신으로부터 " + a_ZombieCtrl.ZomSk2Radius + " 거리\n" +
-                                            "<color=#ff0000>공격력 감소율 :</color> " + a_ZombieCtrl.GetReduceRatio(StarF) * 100 + "%\n" +
-                                            "<color=#ff0000>쿨타임 :</color> " + a_ZombieCtrl.SkSet.Cool[(int)Skill.Sk2] + "초";
+                        explainText.text = string.Format(explainfmt1, "괴성을 내질러 적들의 주의를 끈다.", "일정 거리 안에 있는 적을 도발해 공격력을 감소시키고 자신을 공격하게 한다.") +
+                                           string.Format(explainfmt2, "발동 확률", a_ZombieCtrl.SkSet.Prob[(int)Skill.Sk2] + "%\n") +
+                                           string.Format(explainfmt2, "지속시간", a_ZombieCtrl.ZomSk2SusTime + "초\n") +
+                                           string.Format(explainfmt2, "범위", "자신으로부터 " + a_ZombieCtrl.ZomSk2Radius + " 거리\n") +
+                                           string.Format(explainfmt2, "공격력 감소율", a_ZombieCtrl.GetReduceRatio(StarF) * 100 + "%\n") +
+                                           string.Format(explainfmt2, "쿨타임", a_ZombieCtrl.SkSet.Cool[(int)Skill.Sk2] + "초");
                         break;
                 }
                 break;
@@ -138,28 +140,28 @@ public class SkillInformCtrl : MonoBehaviour, IPointerClickHandler
                 {
                     case ExplainList.Ultimate:
                         nameText.text = "<color=#ffff00>기사회생</color>";
-                        explainText.text = "위기에 처한 아군을 구해낸다.\n주위 일정 범위 내 아군의 체력을 크게 회복시킨다.\n\n" +
-                                            "<color=#ff0000>범위 :</color> 자신으로부터 " + a_GamblerCatCtrl.CatUltiRadius + " 거리\n" +
-                                            "<color=#ff0000>회복량 :</color> " + a_GamblerCatCtrl.GetUltiAmount(StarF);
+                        explainText.text = string.Format(explainfmt1, "위기에 처한 아군을 구해낸다.", "주위 일정 범위 내 아군의 체력을 크게 회복시킨다.") +
+                                           string.Format(explainfmt2, "범위", "자신으로부터 " + a_GamblerCatCtrl.CatUltiRadius + " 거리\n") +
+                                           string.Format(explainfmt2, "회복량", a_GamblerCatCtrl.GetUltiAmount(StarF));
                         break;
 
                     case ExplainList.Skill1:
                         nameText.text = "치유";
-                        explainText.text = "내재한 재능을 발현하여 아군을 돕는다.\n아군 두 명의 체력을 회복시킨다.\n\n" +
-                                            "<color=#ff0000>발동 확률 :</color> " + a_GamblerCatCtrl.SkSet.Prob[(int)Skill.Sk1] + "%\n" +
-                                            "<color=#ff0000>범위 :</color> 현재 체력이 가장 낮은 아군 두 명\n" +
-                                            "<color=#ff0000>회복량 :</color> " + a_GamblerCatCtrl.GetHealAmount(StarF) + "\n" +
-                                            "<color=#ff0000>쿨타임 :</color> " + a_GamblerCatCtrl.SkSet.Cool[(int)Skill.Sk1] + "초";
+                        explainText.text = string.Format(explainfmt1, "내재한 재능을 발현하여 아군을 돕는다.", "아군 두 명의 체력을 회복시킨다.") +
+                                           string.Format(explainfmt2, "발동 확률", a_GamblerCatCtrl.SkSet.Prob[(int)Skill.Sk1] + "%\n") +
+                                           string.Format(explainfmt2, "범위", "현재 체력이 가장 낮은 아군 두 명\n") +
+                                           string.Format(explainfmt2, "회복량", a_GamblerCatCtrl.GetHealAmount(StarF) + "\n") +
+                                           string.Format(explainfmt2, "쿨타임", a_GamblerCatCtrl.SkSet.Cool[(int)Skill.Sk1] + "초");
                         break;
 
                     case ExplainList.Skill2:
                         nameText.text = "달변가";
-                        explainText.text = "현란한 말솜씨로 아군의 사기를 올린다.\n아군 두 명의 대미지를 증가시킨다.\n\n" +
-                                            "<color=#ff0000>발동 확률 :</color> " + a_GamblerCatCtrl.SkSet.Prob[(int)Skill.Sk2] + "%\n" +
-                                            "<color=#ff0000>지속시간 :</color> " + a_GamblerCatCtrl.GetBuffTime(StarF) + "초\n" +
-                                            "<color=#ff0000>범위 :</color> 현재 공격력이 가장 높은 아군 두 명\n" +
-                                            "<color=#ff0000>대미지 증가율 :</color> " + a_GamblerCatCtrl.CatSk2IncAmount * 100 + "%\n" +
-                                            "<color=#ff0000>쿨타임 :</color> " + a_GamblerCatCtrl.SkSet.Cool[(int)Skill.Sk2] + "초";
+                        explainText.text = string.Format(explainfmt1, "현란한 말솜씨로 아군의 사기를 올린다.", "아군 두 명의 대미지를 증가시킨다.") +
+                                           string.Format(explainfmt2, "발동 확률", a_GamblerCatCtrl.SkSet.Prob[(int)Skill.Sk2] + "%\n") +
+                                           string.Format(explainfmt2, "지속시간", a_GamblerCatCtrl.GetBuffTime(StarF) + "초\n") +
+                                           string.Format(explainfmt2, "범위", "현재 공격력이 가장 높은 아군 두 명\n") +
+                                           string.Format(explainfmt2, "대미지 증가율", a_GamblerCatCtrl.CatSk2IncAmount * 100 + "%\n") +
+                                           string.Format(explainfmt2, "쿨타임", a_GamblerCatCtrl.SkSet.Cool[(int)Skill.Sk2] + "초");
                         break;
                 }
                 break;
@@ -171,28 +173,28 @@ public class SkillInformCtrl : MonoBehaviour, IPointerClickHandler
                 {
                     case ExplainList.Ultimate:
                         nameText.text = "<color=#ffff00>난도질</color>";
-                        explainText.text = "소리보다 빠른 속도로 이동하며 날카로운 손톱으로 적들을 난도질한다.\n정면 범위 안의 적들에게 피해를 준다.\n\n" +
-                                            "<color=#ff0000>범위 :</color> 자신의 정면방향으로 최대 " + a_MutantCtrl.MutUltiRange + " 거리내의 적(지형과 충돌 시 범위 감소)\n" +
-                                            "<color=#ff0000>대미지 :</color> " + a_MutantCtrl.GetUltiDmg(StarF);
+                        explainText.text = string.Format(explainfmt1, "소리보다 빠른 속도로 이동하며 날카로운 손톱으로 적들을 난도질한다.", "정면 범위 안의 적들에게 피해를 준다.") +
+                                           string.Format(explainfmt2, "범위", "자신의 정면방향으로 최대 " + a_MutantCtrl.MutUltiRange + " 거리내의 적(지형과 충돌 시 범위 감소)\n") +
+                                           string.Format(explainfmt2, "대미지", a_MutantCtrl.GetUltiDmg(StarF));
                         break;
 
                     case ExplainList.Skill1:
                         nameText.text = "암살";
-                        explainText.text = "주위 환경에 스며들어 몸을 숨긴 후 적의 급소를 공격한다.\n전투 시작 시 몸을 숨겨 적의 타깃이 되지 않으며, 잠시 후 뒤에서 나타나 적을 공격한다.\n\n" +
-                                            "<color=#ff0000>발동 확률 :</color> 100%\n" +
-                                            "<color=#ff0000>범위 :</color> 현재 체력이 가장 낮은 적 한명\n" +
-                                            "<color=#ff0000>대미지 :</color> 기본 공격력 + " + a_MutantCtrl.GetSk1Dmg(StarF) + "\n" +
-                                            "<color=#ff0000>쿨타임 :</color> 전투 시작 시 1회 발동";
+                        explainText.text = string.Format(explainfmt1, "주위 환경에 스며들어 몸을 숨긴 후 적의 급소를 공격한다.", "전투 시작 시 몸을 숨겨 적의 타깃이 되지 않으며, 잠시 후 뒤에서 나타나 적을 공격한다.") +
+                                           string.Format(explainfmt2, "발동 확률", "100 %\n") +
+                                           string.Format(explainfmt2, "범위", "현재 체력이 가장 낮은 적 한명\n") +
+                                           string.Format(explainfmt2, "대미지", "기본 공격력 + " + a_MutantCtrl.GetSk1Dmg(StarF) + "\n") +
+                                           string.Format(explainfmt2, "쿨타임", "전투 시작 시 1회 발동");
                         break;
 
                     case ExplainList.Skill2:
                         nameText.text = "변이";
-                        explainText.text = "돌연변이로 인해 전투에 특화된 신체를 지녔다.\n적에게 가하는 피해와 자신이 받는 피해가 증가한다.\n\n" +
-                                            "<color=#ff0000>발동 확률 :</color> 패시브\n" +
-                                            "<color=#ff0000>범위 :</color> 자기 자신\n" +
-                                            "<color=#ff0000>주는 대미지 증가율 :</color> " + a_MutantCtrl.MutSk2AMul * 100 + "%\n" +
-                                            "<color=#ff0000>받는 대미지 증가율 :</color> " + a_MutantCtrl.MutSk2TMul * 100 + "%\n" +
-                                            "<color=#ff0000>쿨타임 :</color> 없음";
+                        explainText.text = string.Format(explainfmt1, "돌연변이로 인해 전투에 특화된 신체를 지녔다.", "적에게 가하는 피해와 자신이 받는 피해가 증가한다.") +
+                                           string.Format(explainfmt2, "발동 확률", "패시브\n") +
+                                           string.Format(explainfmt2, "범위", "자기자신\n") +
+                                           string.Format(explainfmt2, "주는 대미지 증가율", a_MutantCtrl.MutSk2AMul * 100 + "%\n") +
+                                           string.Format(explainfmt2, "받는 대미지 증가율", a_MutantCtrl.MutSk2TMul * 100 + "%\n") +
+                                           string.Format(explainfmt2, "쿨타임", "없음");
                         break;
                 }
                 break;
@@ -204,28 +206,28 @@ public class SkillInformCtrl : MonoBehaviour, IPointerClickHandler
                 {
                     case ExplainList.Ultimate:
                         nameText.text = "<color=#ffff00>백만볼트</color>";
-                        explainText.text = "내부의 핵으로부터 강력한 전기를 생성해 적을 섬멸한다.\n단일 적에게 큰 피해를 준다.\n\n" +
-                                            "<color=#ff0000>범위 :</color> 현재 공격 중인 대상\n" +
-                                            "<color=#ff0000>대미지 :</color> " + a_JammoCtrl.GetUltiDmg(StarF);
+                        explainText.text = string.Format(explainfmt1, "내부의 핵으로부터 강력한 전기를 생성해 적을 섬멸한다", "단일 적에게 큰 피해를 준다.") +
+                                           string.Format(explainfmt2, "범위", "현재 공격 중인 대상\n") +
+                                           string.Format(explainfmt2, "대미지", a_JammoCtrl.GetUltiDmg(StarF));
                         break;
 
                     case ExplainList.Skill1:
                         nameText.text = "서지";
-                        explainText.text = "체내의 회로를 순간적으로 활성화해 과부하 상태가 된다.\n다음 기본공격이 강화된다.\n\n" +
-                                            "<color=#ff0000>발동 확률 :</color> " + a_JammoCtrl.SkSet.Prob[(int)Skill.Sk1] + "%\n" +
-                                            "<color=#ff0000>범위 :</color> 현재 공격 중인 대상\n" +
-                                            "<color=#ff0000>강화된 대미지 :</color> 기본 공격력의 " + a_JammoCtrl.GetSk1Mul(StarF) + "배\n" +
-                                            "<color=#ff0000>쿨타임 :</color> " + a_JammoCtrl.SkSet.Cool[(int)Skill.Sk1] + "초";
+                        explainText.text = string.Format(explainfmt1, "체내의 회로를 순간적으로 활성화해 과부하 상태가 된다.", "다음 기본공격이 강화된다.") +
+                                           string.Format(explainfmt2, "발동 확률", a_JammoCtrl.SkSet.Prob[(int)Skill.Sk1] + "%\n") +
+                                           string.Format(explainfmt2, "범위", "현재 공격 중인 대상\n") +
+                                           string.Format(explainfmt2, "강화된 대미지", "기본 공격력의 " + a_JammoCtrl.GetSk1Mul(StarF) + "배\n") +
+                                           string.Format(explainfmt2, "쿨타임", a_JammoCtrl.SkSet.Cool[(int)Skill.Sk1] + "초");
                         break;
 
                     case ExplainList.Skill2:
                         nameText.text = "가속";
-                        explainText.text = "미약한 전류를 흘려보내 움직임을 향상시킨다.\n주위 아군의 공격 속도가 향상된다.\n\n" +
-                                            "<color=#ff0000>발동 확률 :</color> " + a_JammoCtrl.SkSet.Prob[(int)Skill.Sk2] + "%\n" +
-                                            "<color=#ff0000>지속시간 :</color> " + a_JammoCtrl.JamSk2Time + "초\n" +
-                                            "<color=#ff0000>범위 :</color> 자신으로부터 " + a_JammoCtrl.JamSk2Radius + " 거리\n" +
-                                            "<color=#ff0000>증가량 :</color> " + a_JammoCtrl.GetSk2Value(StarF) + "\n" +
-                                            "<color=#ff0000>쿨타임 :</color> " + a_JammoCtrl.SkSet.Cool[(int)Skill.Sk2] + "초";
+                        explainText.text = string.Format(explainfmt1, "미약한 전류를 흘려보내 움직임을 향상시킨다.", "주위 아군의 공격 속도가 향상된다.") +
+                                           string.Format(explainfmt2, "발동 확률", a_JammoCtrl.SkSet.Prob[(int)Skill.Sk2] + "%\n") +
+                                           string.Format(explainfmt2, "지속시간", a_JammoCtrl.JamSk2Time + "초\n") +
+                                           string.Format(explainfmt2, "범위", "자신으로부터 " + a_JammoCtrl.JamSk2Radius + " 거리\n") +
+                                           string.Format(explainfmt2, "증가량", a_JammoCtrl.GetSk2Value(StarF) + "\n") +
+                                           string.Format(explainfmt2, "쿨타임", a_JammoCtrl.SkSet.Cool[(int)Skill.Sk2] + "초");
                         break;
                 }
                 break;
