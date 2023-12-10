@@ -35,29 +35,15 @@ public class BGMController : MonoBehaviour
 
     public void BGMChange(BGMList ReqBGM)       //요청받은 배경음악으로 변경하는 함수
     {
-        AudioClip a_ReqAudioClip = null;        //지금 재생 요청받은 오디오클립을 저장할 변수
-
-        switch (ReqBGM)
+        AudioClip a_ReqAudioClip = ReqBGM switch  //지금 재생 요청받은 오디오클립을 저장할 변수
         {
-            case BGMList.Title:
-                a_ReqAudioClip = titleBGM;
-                break;
-
-            case BGMList.Lobby:
-                a_ReqAudioClip = lobbyBGM;
-                break;
-
-            case BGMList.Battle:
-                a_ReqAudioClip = battleBGM;
-                break;
-
-            case BGMList.RankLobby:
-                a_ReqAudioClip = rankLobbyBGM;
-                break;
-
-            case BGMList.Stop:
-                break;
-        }
+            BGMList.Title => titleBGM,
+            BGMList.Lobby => lobbyBGM,
+            BGMList.Battle => battleBGM,
+            BGMList.RankLobby => rankLobbyBGM,
+            BGMList.Stop => null,
+            _ => null
+        };
 
         if (prevReqClip == a_ReqAudioClip)       //이전과 같은 BGM을 요청받았다면 취소
             return;
@@ -77,7 +63,7 @@ public class BGMController : MonoBehaviour
         while (BGMAudio.volume > minVolume)     //볼륨 최소값까지 서서히 감소
         {
             BGMAudio.volume -= Time.deltaTime * vChangeTime * defaultVolume;
-            yield return Time.deltaTime;
+            yield return null;
         }
 
         BGMAudio.clip = ReqClip;  //오디오 클립 변경
@@ -90,7 +76,7 @@ public class BGMController : MonoBehaviour
         while (BGMAudio.volume < defaultVolume) //볼륨 최대값까지 서서히 증가
         {
             BGMAudio.volume += Time.deltaTime * vChangeTime * defaultVolume;
-            yield return Time.deltaTime;
+            yield return null;
         }
 
         isChanging = false;

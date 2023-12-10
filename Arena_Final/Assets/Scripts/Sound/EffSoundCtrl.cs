@@ -40,51 +40,21 @@ public class EffSoundCtrl : MonoBehaviour
 
     public void EffSoundPlay(EffSoundList ReqEffSound)  //효과음 재생 함수(효과음 재생이 필요한곳에서 실행요청)
     {
-        AudioClip a_ReqAudioClip = null;    //재생할 오디오클립을 담을 변수
-
-        switch (ReqEffSound)
+        effAudio.clip = ReqEffSound switch  //요청받은 효과음에 맞게 오디오클립 변경
         {
-            case EffSoundList.ButtonClick:
-                a_ReqAudioClip = buttonClickClip;
-                break;
+            EffSoundList.ButtonClick => buttonClickClip,
+            EffSoundList.ResultVictory => resultVClip,
+            EffSoundList.ResultDefeat => resultDClip,
+            EffSoundList.MonCreate => monCreateClip,
+            EffSoundList.Fight => fightClip,
+            EffSoundList.fail => failClip,
+            EffSoundList.UltiReady => ultiReadyClip,
+            EffSoundList.Shop => shopClip,
+            EffSoundList.Evolve => evolveClip,
+            _ => null
+        };
 
-            case EffSoundList.ResultVictory:
-                a_ReqAudioClip = resultVClip;
-                break;
-
-            case EffSoundList.ResultDefeat:
-                a_ReqAudioClip = resultDClip;
-                break;
-
-            case EffSoundList.MonCreate:
-                a_ReqAudioClip = monCreateClip;
-                break;
-
-            case EffSoundList.Fight:
-                a_ReqAudioClip = fightClip;
-                break;
-
-            case EffSoundList.fail:
-                a_ReqAudioClip = failClip;
-                break;
-
-            case EffSoundList.UltiReady:
-                a_ReqAudioClip = ultiReadyClip;
-                break;
-
-            case EffSoundList.Shop:
-                a_ReqAudioClip = shopClip;
-                break;
-
-            case EffSoundList.Evolve:
-                a_ReqAudioClip = evolveClip;
-                break;
-        }
-
-        if (a_ReqAudioClip == null)     //재생할 오디오클립이 없으면 취소
-            return;
-
-        effAudio.clip = a_ReqAudioClip; //오디오클립 변경
-        effAudio.Play();                //효과음 재생
+        if (effAudio.clip != null)      //효과음 재생
+            effAudio.Play();
     }
 }
