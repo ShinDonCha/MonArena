@@ -64,18 +64,13 @@ public class GameMgr : NetworkMgr, IButtonClick, ICMCList
             return;
 
         switch (BtnL)
-        {            
+        {
             case ButtonList.BackButton:     //돌아가기 버튼
-                switch(curSceneName)
-                {
-                    case SceneList.InGameScene:
-                        LoadScene(SceneList.StageScene);        //스테이지 씬으로 이동
-                        break;
+                if (curSceneName.Equals(SceneList.InGameScene))
+                    LoadScene(SceneList.StageScene);            //스테이지 씬으로 이동
+                else if (curSceneName.Equals(SceneList.RankGameScene))
+                    LoadScene(SceneList.RankLobbyScene);        //랭크 로비 씬으로 이동
 
-                    case SceneList.RankGameScene:
-                        LoadScene(SceneList.RankLobbyScene);    //랭크 로비 씬으로 이동
-                        break;
-                }
                 EffSoundCtrl.Instance.EffSoundPlay(EffSoundList.ButtonClick);   //버튼 클릭 효과음 재생
                 break;
 
@@ -83,7 +78,7 @@ public class GameMgr : NetworkMgr, IButtonClick, ICMCList
                 EffSoundCtrl.Instance.EffSoundPlay(EffSoundList.Fight);        //전투시작 효과음 재생
                 StartCoroutine(StartSettings());
                 break;
-        }        
+        }
     }
     
     public void LoadScene(SceneList NextScene)  //씬 불러오기 함수
@@ -94,10 +89,7 @@ public class GameMgr : NetworkMgr, IButtonClick, ICMCList
 
     public List<CmnMonCtrl> CMCListFuncSet(string TagStr)   //외부에서 FindClass.GetCMCListFunc를 통해 CMCList를 가져가는 함수
     {
-        if (!Enum.TryParse(TagStr, out Team TeamTag))
-            return null;
-
-        switch (TeamTag)
+        switch (Enum.Parse<Team>(TagStr))
         {
             case Team.Ally:
                 return myCMCList;
@@ -169,12 +161,12 @@ public class GameMgr : NetworkMgr, IButtonClick, ICMCList
         combatUI.SetActive(true);       //전투 UI 켜기
 
         //-------------- 유저와 적 중 한쪽이라도 몬스터를 하나도 배치하지 않고 시작했다면 즉시 종료 아니면 전투시작 --------------
-        if (numofPMon == 0)
+        if (numofPMon.Equals(0))
         {
             ResultData.CombatResult = Result.Defeat;   //패배
             StartCoroutine(EndAction());
         }
-        else if (numofEMon == 0)
+        else if (numofEMon.Equals(0))
         {
             ResultData.CombatResult = Result.Victory;   //승리
             StartCoroutine(EndAction());
@@ -188,10 +180,7 @@ public class GameMgr : NetworkMgr, IButtonClick, ICMCList
     #region ------------------ 전투 결과 계산, 전투 종료 액션 ------------------
     public void CalcResults (string TeamTag)    //몬스터 사망 시 해당 몬스터의 이름, 대미지, 피해량을 받아와 저장, 계산하는 함수
     {
-        if (!Enum.TryParse(TeamTag, out Team TeamName))      //죽은 몬스터의 Tag를 Team enum형식으로 변경
-            return;
-
-        switch(TeamName)
+        switch (Enum.Parse<Team>(TeamTag))       //죽은 몬스터의 Tag를 Team enum형식으로 변경
         {
             case Team.Ally:         //아군일 경우
                 numofPMon--;         //현재 남아있는 아군의 수 감소
@@ -200,15 +189,14 @@ public class GameMgr : NetworkMgr, IButtonClick, ICMCList
             case Team.Enemy:        //적군일 경우
                 numofEMon--;        //현재 남아있는 적군의 수 감소
                 break;
+
+            default:
+                return;
         }
 
-        if (numofPMon == 0 || numofEMon == 0)     //아군과 적군 중 어느쪽이든 다 죽으면 실행
+        if (numofPMon.Equals(0) || numofEMon.Equals(0))     //아군과 적군 중 어느쪽이든 다 죽으면 실행
         {
-            if (numofPMon == 0)              //아군이 다 죽었으면
-                ResultData.CombatResult = Result.Defeat;     //패배
-            else if (numofEMon == 0)
-                ResultData.CombatResult = Result.Victory;   //승리
-
+            ResultData.CombatResult = numofPMon.Equals(0) ? Result.Defeat : Result.Victory;      //아군이 다 죽었으면 패배, 반대면 승리
             StartCoroutine(EndAction());      //ResultScene으로 넘어가는 코루틴 실행
         }
     }

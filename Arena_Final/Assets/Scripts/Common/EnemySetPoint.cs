@@ -29,14 +29,9 @@ public class EnemySetPoint : MonoBehaviour
 
     private void StageSetMonster()       //유저의 스테이지에 맞는 몬스터 생성 함수(현재 임시로 5스테이지까지만 구성)
     {
-        int a_RepeatNum;
+        int a_RepeatNum = PlayerInfo.CombatStage < 5 ? PlayerInfo.CombatStage : 5;
 
-        if (PlayerInfo.CombatStage < 5)
-            a_RepeatNum = PlayerInfo.CombatStage;
-        else 
-            a_RepeatNum = 5;
-
-        for(int i = 0; i < a_RepeatNum; i++)
+        for (int i = 0; i < a_RepeatNum; i++)
             Instantiate(monStore.monstersObj[i], PointsTr[i]).tag = Team.Enemy.ToString();  //몬스터 생성
     }
 
