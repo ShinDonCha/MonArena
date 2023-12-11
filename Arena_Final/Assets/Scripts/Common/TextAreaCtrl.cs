@@ -59,27 +59,25 @@ public class TextAreaCtrl : MonoBehaviour
     {
         Vector2 a_PosVtr2 = Camera.main.WorldToScreenPoint(new Vector3(ObjPos.x, ObjPos.y + 1.8f, ObjPos.z));   //텍스트를 생성할 World상의 위치
 
-        GameObject a_GO;    //텍스트 오브젝트를 담을 변수
-
         switch (AnimList)
         {
             case TxtAnimList.DmgTxtAnim:
-                if (dmgTextPrefab == null)    //대미지 텍스트 출력 프리팹을 등록하지 않았으면 취소(오류 방지)
-                    return;
-
-                a_GO = Instantiate(dmgTextPrefab, a_PosVtr2, Quaternion.identity, transform);      //대미지 텍스트 생성
-                a_GO.GetComponentInChildren<Text>().text = Value + " Dmg";  //대미지 표기 변경
-                Destroy(a_GO, 0.5f);        //일정시간 뒤에 텍스트 오브젝트 삭제
+                TextPrefabInst(dmgTextPrefab, Value + " Dmg");
                 break;
 
             case TxtAnimList.HealTxtAnim:
-                if (healTextPrefab == null)   //힐 텍스트 출력 프리팹을 등록하지 않았으면 취소(오류 방지)
-                    return;
-
-                a_GO = Instantiate(healTextPrefab, a_PosVtr2, Quaternion.identity, transform);      //힐 텍스트 생성
-                a_GO.GetComponentInChildren<Text>().text = "+ " + Value + " HP";  //힐량 표기 변경
-                Destroy(a_GO, 0.8f);        //일정시간 뒤에 텍스트 오브젝트 삭제
+                TextPrefabInst(healTextPrefab, "+ " + Value + " HP");
                 break;
+        }
+
+        void TextPrefabInst(GameObject TextPrefab, string TextStr) //텍스트 프리팹 생성 로컬 함수
+        {
+            if (TextPrefab == null)     //텍스트 프리팹을 등록하지 않았으면 취소
+                return;
+
+            GameObject a_GO = Instantiate(TextPrefab, a_PosVtr2, Quaternion.identity, transform);   //텍스트 생성
+            a_GO.GetComponentInChildren<Text>().text = TextStr;    //표기 변경
+            Destroy(a_GO, 0.8f);        //일정시간 뒤에 텍스트 오브젝트 삭제
         }
     }
     #endregion ----------------- 힐&대미지 텍스트 요청 함수 -----------------
@@ -100,26 +98,17 @@ public class TextAreaCtrl : MonoBehaviour
     [PunRPC]
     private void BuffTextPlay(Team TeamName, int SiblingIndex, Vector3 ObjPos, TxtAnimList AnimList, TakeAct Act)      //버프&디버프 텍스트 생성 함수
     {
-        Transform a_ReqTr = null;
-
-        switch (TeamName)
+        Transform a_ReqTr = TeamName switch
         {
-            case Team.Ally:
-                a_ReqTr = playerTabTr;
-                break;
+            Team.Ally => playerTabTr,
+            Team.Enemy => enemyTabTr,
+            Team.Team1 => team1TabTr,
+            Team.Team2 => team2TabTr,
+            _ => null
+        };
 
-            case Team.Enemy:
-                a_ReqTr = enemyTabTr;
-                break;
-
-            case Team.Team1:
-                a_ReqTr = team1TabTr;
-                break;
-
-            case Team.Team2:
-                a_ReqTr = team2TabTr;
-                break;
-        }
+        if (a_ReqTr == null)    //Transform을 찾지 못했으면 취소
+            return;
 
         //switch를 통해 얻어온 게임 오브젝트 하위의 BuffTextRoot의 BuffTextRootCtrl에 접근해 텍스트 생성 함수 실행
         a_ReqTr.GetChild(SiblingIndex).GetComponent<BuffTextRootCtrl>().AnimPlay(ObjPos, AnimList, Act);

@@ -25,25 +25,13 @@ public class InstantAreaCtrl : MonoBehaviour
 
     private Transform GetAreaTr(string TeamTag)     //태그에 맞는 Area를 찾는 함수
     {
-        if (!Enum.TryParse(TeamTag, out Team Tm))
-            return null;
-
-        switch(Tm)
+        return Enum.Parse<Team>(TeamTag) switch
         {
-            case Team.Ally:
-                return playerAreaTr;
-
-            case Team.Enemy:
-                return enemyAreaTr;
-
-            case Team.Team1:
-                return team1AreaTr;
-
-            case Team.Team2:
-                return team2AreaTr;
-
-            default:
-                return null;
-        }
+            Team.Ally => playerAreaTr,
+            Team.Enemy => enemyAreaTr,
+            Team.Team1 => team1AreaTr,
+            Team.Team2 => team2AreaTr,
+            _ => null,
+        };
     }
 }

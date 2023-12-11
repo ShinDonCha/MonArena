@@ -152,16 +152,7 @@ public class SetPointCtrl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     #region ----------------- 색상 변경, 오류 출력 -----------------
     public void PColorChange(bool Dragging)     //하위 Point들의 색상변경 함수
     {
-        switch (Dragging)
-        {
-            case true:
-                pointMtrl.color = dragPColor;     //Point의 색상을 드래그 상태의 색상으로 변경
-                break;
-
-            case false:
-                pointMtrl.color = defaultPColor;     //Point의 색상을 기본 상태의 색상으로 변경
-                break;
-        }
+        pointMtrl.color = Dragging ? dragPColor : defaultPColor;    //드래그 상태에 따라 Point의 색상 변경
     }
 
     private IEnumerator ErrorOnOff()        //오류 텍스트 출력을 위한 코루틴

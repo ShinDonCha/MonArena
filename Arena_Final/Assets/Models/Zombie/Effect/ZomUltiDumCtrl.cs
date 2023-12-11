@@ -26,7 +26,7 @@ public class ZomUltiDumCtrl : MonoBehaviour
         if (other.gameObject.layer.Equals((int)LayerName.MonBody)
             && !transform.parent.CompareTag(other.transform.parent.tag))     //적일 경우
         {
-            Instantiate(ultiEffect, other.GetComponentInParent<CmnMonCtrl>().GetHitPoint.transform.position, Quaternion.identity, FindClass.AreaTrFunc(tag));
+            Instantiate(ultiEffect, other.GetComponentInParent<CmnMonCtrl>().GetHitPoint.transform.position, Quaternion.identity, FindClass.AreaTrFunc(transform.parent.tag));
             int a_CalcDmg = ultiZombie.GiveDamage(other.transform.parent.gameObject, ultiZombie.GetUltiDmg(ultiZombie.CMCmonStat.starForce));  //대미지 입히기
             ultiZombie.TakeAny(TakeAct.Heal, a_CalcDmg * ultiZombie.ZomUltiRatio);    //입힌 대미지 * 회복비율로 체력 회복
         }
