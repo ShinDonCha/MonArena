@@ -7,8 +7,8 @@ using System;
 //몬스터들의 움직임이나 스킬사용 여부 등 게임 내에서 계속 변화하는 값들을 컨트롤하는 스크립트
 //초기 값 설정 외에 외부에서 변수에 접근할 때 모두 여기를 통함
 //각 몬스터들의 전용 스크립트(Zombie,Soldier 등)에 상속된다.
-public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
-{    
+public abstract partial class CmnMonCtrl : CmnMonSet, IPunObservable
+{
     protected abstract void SkillSetting();       //몬스터의 스킬 확률&쿨타임 설정 함수(몬스터 별로 상이하므로 전용 스크립트에서 설정)    
     private bool attackEnable = true;             //공격 가능한지 판단하는 변수 (공격 딜레이 동안 false상태)
     private readonly Queue<int> actQueue = new(); //발동에 성공한 액티브 스킬 목록
@@ -33,7 +33,7 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
             stream.SendNext(hpImg.fillAmount);
         }
         else
-        {                   
+        {
             CMCcurStat.hp = (int)stream.ReceiveNext();
             CMCcurStat.attackDmg = (int)stream.ReceiveNext();
             CMCcurStat.defPower = (int)stream.ReceiveNext();
@@ -60,7 +60,7 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
     void Update()
     {
         if (photonV != null && !photonV.IsMine)     //멀티 게임일때 IsMine이 아닌 객체면 동작하지 않음
-            return;        
+            return;
 
         #region -------------------------- 몬스터 상태 체크, 변경 --------------------------
         switch (monState)
@@ -111,15 +111,13 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
             case MonsterState.Die:     //죽은상태
                 if (photonV == null)   //싱글게임일 때
                 {
-                    ActiveSet(false);   //이 몬스터를 전장에서 사라지게 하기 
-                    DeathEffInst();     //사망 이펙트 생성
+                    Death();   //죽음
                     GameMgr.Instance.CalcResults(tag);   //결과 계산을 위해 이 몬스터의 태그 전달
                 }
                 else    //멀티게임일 때
                 {
-                    photonV.RPC("ActiveSet", RpcTarget.All, false); //이 몬스터를 전장에서 사라지게 하기
-                    photonV.RPC("DeathEffInst", RpcTarget.All);     //사망 이펙트 생성
-                    MtGameMgr.Instance.CalcResults(tag);            //결과 계산을 위해 이 몬스터의 태그 전달
+                    photonV.RPC("Death", RpcTarget.All); //죽음
+                    MtGameMgr.Instance.CalcResults(tag);  //결과 계산을 위해 이 몬스터의 태그 전달
                 }
                 break;
         }
@@ -127,15 +125,10 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
     }
 
     [PunRPC]
-    protected void DeathEffInst()     //사망 이펙트 생성을 위한 RPC
+    protected void Death()    //이 몬스터를 사망상태로 만들기 위한 매소드
     {
-        Instantiate(deathEffect, transform.position, Quaternion.identity);
-    }
-
-    [PunRPC]
-    protected void ActiveSet(bool OnOff)    //게임오브젝트의 SetActive 변경을 위한 RPC
-    {
-        gameObject.SetActive(OnOff);
+        gameObject.SetActive(false);                                        //이 몬스터를 전장에서 사라지게 하기
+        Instantiate(deathEffect, transform.position, Quaternion.identity);  //사망 이펙트 생성
     }
 
     private void FixedUpdate()
@@ -152,16 +145,16 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
 
         switch (monState)
         {
-            case MonsterState.Trace:            
+            case MonsterState.Trace:
                 transform.rotation = Quaternion.LookRotation(Enemy.transform.position - transform.position);    //공격 대상을 향해 회전
                 break;
 
             case MonsterState.Attack: //공격사거리 안에 공격 대상이 있을때 실행됨 (없을 경우 Update()에서 Trace로 상태가 변경된다.)
                 if (attackEnable)     //공격 가능 상태일 때만
-                {    
+                {
                     Quaternion a_EnemyQ = Quaternion.LookRotation(Enemy.transform.position - transform.position);   //이 몬스터가 대상을 바라볼때의 회전각(쿼터니언)
                     transform.rotation = Quaternion.RotateTowards(transform.rotation, a_EnemyQ, rotAngle);          //이 몬스터를 회전 (fixedTime당 최대 rotAngle만큼 회전)
-                }                
+                }
                 break;
         }
         #endregion -------------------------- 몬스터 물리연산 --------------------------
@@ -258,7 +251,7 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
                 Enemy = FindClass.GetMonCMC(Team.Team1.ToString(), EnemyName).gameObject;      //공격대상 지정
                 break;
         }
-    }    
+    }
 
     #region ----------------------- 공격, 액티브 스킬 -----------------------
     protected virtual void Attack()         //일반 공격 시 동작 (일반 공격 애니메이션 특정부분에서 이벤트로 실행)
@@ -277,33 +270,31 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
 
         for (int i = 0; i < a_ActSkCount; i++)    //발동이 예약된 액티브 스킬(Skill1, Skill2)이 있을 경우
             AnimReq(((Skill)actQueue.Dequeue()).ToString());     //스킬번호에 맞게 애니메이션 재생
-    }
 
-    private IEnumerator AttackDelayCalc()      //일반 공격에 딜레이를 적용시키기 위한 코루틴
-    {
-        attackEnable = false;       //일반공격 불가능 상태로 변경
-        yield return new WaitForSeconds(CMCcurStat.attackSpd);   //공격속도만큼 지난 뒤에 제어권 가져옴
-        attackEnable = true;        //일반공격 가능 상태로 변경
-    }
 
-    private void ActSkillCheck()            //액티브 스킬 발동 체크 함수(각 스킬마다 발동 확률을 가지고있음)
-    {
-        for (int i = 0; i < (int)Skill.Count; i++)   //궁극기를 제외한 스킬 개수만큼 실행 (스킬마다 각각 한번씩 발동 확률이 계산되기 때문에 여러개를 같이 발동시킬수도 있음)
+        #region ------------ 로컬 함수 ------------
+        IEnumerator AttackDelayCalc()   //일반 공격에 딜레이를 적용시키기 위한 코루틴
         {
-            int a_Rnd = UnityEngine.Random.Range(0, 100);
+            attackEnable = false;       //일반공격 불가능 상태로 변경
+            yield return new WaitForSeconds(CMCcurStat.attackSpd);   //공격속도만큼 지난 뒤에 제어권 가져옴
+            attackEnable = true;        //일반공격 가능 상태로 변경
+        }
 
-            if (skillOnOff[i])       //해당 스킬을 사용 가능상태면 (스킬쿨타임이 아닐 때 가능상태)
+        void ActSkillCheck()            //액티브 스킬 발동 체크 함수(각 스킬마다 발동 확률을 가지고있음)
+        {
+            for (int i = 0; i < (int)Skill.Count; i++)   //궁극기를 제외한 스킬 개수만큼 실행 (스킬마다 각각 한번씩 발동 확률이 계산되기 때문에 여러개를 같이 발동시킬수도 있음)
             {
-                if (actQueue.Contains(i))      //이미 같은 종류의 액티브 스킬이 등록되어 있을 경우 넘어가기
+                int a_Rnd = UnityEngine.Random.Range(0, 100);
+
+                if (!skillOnOff[i] || actQueue.Contains(i))    //해당 스킬이 사용 불가능상태거나 이미 같은 종류의 액티브 스킬이 등록되어 있다면 넘어가기(스킬쿨타임이 아닐 때 가능상태)
                     continue;
 
                 if (a_Rnd < SkSet.Prob[i])     //설정한 스킬 발동확률을 만족하면 큐에 추가
                     actQueue.Enqueue(i);
             }
-            else//(!skillOnOff[i])  //해당 스킬이 사용 불가능상태면 넘어가기(스킬쿨타임이 아닐 때 가능상태)
-                continue;
         }
-    }    
+        #endregion ------------ 로컬 함수 ------------
+    }
 
     private IEnumerator ActSkillOn(int SkillNum)        //스킬 발동 (Skill1과 Skill2 애니메이션 특정부분에서 이벤트로 실행)
     {
@@ -343,7 +334,7 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
     }
 
     protected virtual void UltiSkill()    //궁극기 발동 함수(궁극기 애니메이션에서 이벤트로 실행)
-    {        
+    {
         UltiGage = 0;                 //궁극기 게이지 초기화
         Time.timeScale = 1.0f;        //일시정지 해제
         animator.updateMode = AnimatorUpdateMode.AnimatePhysics;   //원래 애니메이션 모드로 변경
@@ -352,15 +343,21 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
 
     protected void AddUltiGage(int UG)     //궁극기 게이지 충전 함수
     {
-        UltiGage += UG;        //게이지 추가
-
-        if (UltiGage > 100)     //최대수치인 100을 넘기지 못하도록
-            UltiGage = 100;
+        UltiGage = Mathf.Min(UltiGage + UG, 100);   //게이지 추가 (최대수치인 100을 넘기지 못함)
     }
-    #endregion ------------------- 궁극기 관련 -------------------
+    #endregion ------------------- 궁극기 관련 -------------------    
 
+    private void OnDisable()
+    {
+        GameManager.StartEvent -= StartFight;     //등록한 이벤트 삭제
+        StopAllCoroutines();            //이 몬스터의 활동이 끝날 때 (죽거나 배치 취소) 모든 코루틴 종료
+    }
+}
+
+partial class CmnMonCtrl : CmnMonSet, IPunObservable //받은 피해,버프에 대한 메소드를 담기위한 분할 클래스
+{
     #region -------------------- 대미지 입히기 --------------------
-    public int GiveDamage(GameObject Target, int Damage)     //공격 시 상대 스크립트에 접근해서 대미지 적용시키는 함수 (일반공격, 스킬공격 전부 이 스크립트로 대미지 적용)
+    public int GiveDamage(GameObject Target, int Damage)     //공격 시 상대 스크립트에 접근해서 대미지 적용시키는 함수 (일반공격, 스킬공격 전부 이 메소드로 대미지 적용)
     {
         if (!Target.activeSelf)     //적이 죽었다면 취소
             return 0;
@@ -381,44 +378,30 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
 
         if (CMCcurStat.hp > 0)          //이 몬스터가 살아있을때만..
         {
-            Damage = (int)(Damage * (1.0f + curAddStat.MulTakeDmg));        //받는 피해량 증가분 만큼 피해량 증가
+            //---------- 받을 대미지 다시 계산
+            int a_RecalcDmg = (int)(Damage * (1.0f + curAddStat.MulTakeDmg));        //받는 피해량 증가분 만큼 증가된 피해량 계산
 
-            switch (AType)              //대미지 계산
+            Damage = AType switch
             {
-                case AttackType.Physical:               //적의 공격이 물리 공격일 경우
-                    Damage -= CMCcurStat.defPower;      //나의 방어력만큼 감소
-                    break;
+                AttackType.Physical => Mathf.Max(0, a_RecalcDmg - CMCcurStat.defPower), //적의 공격이 물리 공격일 경우 나의 방어력 만큼 감소
+                AttackType.Magical => Mathf.Max(0, a_RecalcDmg - CMCcurStat.mdefPower), //적의 공격이 마법 공격일 경우 나의 마법저항력 만큼 감소
+                _ => a_RecalcDmg                                                        //둘다 아닐 경우 감소 없음
+            };
 
-                case AttackType.Magical:                //적의 공격이 마법 공격일 경우
-                    Damage -= CMCcurStat.mdefPower;     //나의 마법저항력 만큼 감소
-                    break;
-            }
-
-            Damage = Mathf.Max(0, Damage);      //대미지가 음수 나오지 않게 하기 위해
-
-            switch (CMCcurStat.hp > Damage)       //남은 체력과 받을 대미지 비교
+            if (CMCcurStat.hp <= Damage)
             {
-                case true: //(CMCcurStat.hp > Damage)
-                    if (photonV != null && !photonV.IsMine)     //공격받는 애가 멀티 원격이면 실제 대미지가 들어가기전에 계산한 대미지만 리턴(실제로 피해입는건 로컬에서 적용되도록 하기 위함)
-                        return Damage;
-                    break;
-
-                case false: //(CMCcurStat.hp <= Damage)
-                    Damage = CMCcurStat.hp;
-
-                    if (photonV != null && !photonV.IsMine)     //공격받는 애가 멀티 원격이면 실제 대미지가 들어가기전에 계산한 대미지만 리턴(실제로 피해입는건 로컬에서 적용되도록 하기 위함)
-                        return Damage;
-
-                    monState = MonsterState.Die;    //몬스터 사망처리
-                    break;
+                Damage = CMCcurStat.hp;
+                monState = MonsterState.Die;    //몬스터 사망처리
             }
+            //---------- 받을 대미지 다시 계산
 
             //-------------- 실제 피해 계산 (공격받는 애가 싱글과 멀티IsMine일 때만 대미지를 입힘)
             CMCcurStat.hp -= Damage; //대미지 입히기
-            AddUltiGage(10);         //맞을 때 마다 궁극기 게이지 10씩 얻음
+            AddUltiGage((int)(Damage * 1.2f));    //입은 대미지의 1.2배 만큼 궁극기 게이지 획득
             hpImg.fillAmount = (float)CMCcurStat.hp / CMCmonStat.hp;    //몬스터 머리위의 HP바 표시 변경
             TextRequest.InstantTxtReqAct(transform.position, TxtAnimList.DmgTxtAnim, Damage);       //대미지 텍스트 출력 요청
             TotalHP += Damage;  //받은 총 피해에 추가
+
             return Damage;      //받은 피해를 공격자에게 전달 (공격자의 대미지 총합에 더해주기 위함)
             //-------------- 실제 피해 계산 (공격받는 애가 싱글과 멀티IsMine일 때만 대미지를 입힘)
         }
@@ -446,7 +429,7 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
 
             default:                //그 외의 경우
                 StartCoroutine(BuffTextCo(Figure, SusTime, TA));
-                break;            
+                break;
         }
     }
 
@@ -473,7 +456,7 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
             yield break;
         //--------- 들어온 수치에 따라 버프인지 디버프인지 결정
 
-        if(photonV == null)         //싱글
+        if (photonV == null)         //싱글
             TextRequest.BuffTxtReqAct(tag, transform.parent.GetSiblingIndex(), transform.position, a_TxtAList, Act);     //상태변화 텍스트 출력
         else//(photonV != null)     //멀티(멀티는 TakeAny가 IsMine만 실행됨)
             TextRequest.BuffTxtReqAct(tag, (int)CMCmonStat.monName, transform.position, a_TxtAList, Act);   //상태변화 텍스트 출력(지금은 5몬스터이라서 가능한데 몬스터 늘어나면 불가능함)
@@ -509,10 +492,4 @@ public abstract class CmnMonCtrl : CmnMonSet, IPunObservable
         }
     }
     #endregion --------------------------- 받은 액티브 스킬 ---------------------------
-
-    private void OnDisable()
-    {
-        GameManager.StartEvent -= StartFight;     //등록한 이벤트 삭제
-        StopAllCoroutines();            //이 몬스터의 활동이 끝날 때 (죽거나 배치 취소) 모든 코루틴 종료
-    }    
 }
