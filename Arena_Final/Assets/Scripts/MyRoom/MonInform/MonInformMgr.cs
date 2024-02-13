@@ -63,18 +63,12 @@ public class MonInformMgr : MonoBehaviour, IButtonClick
 
         monNameText.text = MIMmonStat.monName.ToString();      //몬스터 이름 표시
 
-        switch (MIMmonStat.attackType)  //현재 몬스터의 공격타입에 따라 이미지와 텍스트 바꿔주기
+        (aTypeImg.sprite, aTypeText.text) = MIMmonStat.attackType switch  //현재 몬스터의 공격타입에 따라 이미지와 텍스트 바꿔주기
         {
-            case AttackType.Physical:
-                aTypeImg.sprite = aTypeSprites[(int)AttackType.Physical];
-                aTypeText.text = "물리대미지";
-                break;
-
-            case AttackType.Magical:
-                aTypeImg.sprite = aTypeSprites[(int)AttackType.Magical];
-                aTypeText.text = "마법대미지";
-                break;
-        }
+            AttackType.Physical => (aTypeSprites[(int)AttackType.Physical], "물리대미지"),
+            AttackType.Magical => (aTypeSprites[(int)AttackType.Magical], "마법대미지"),
+            _=> (null, "오류")
+        };
 
         hpText.text = MIMmonStat.hp.ToString();                 //HP 표시
         aDamageText.text = MIMmonStat.attackDmg.ToString();     //공격력 표시
@@ -106,7 +100,7 @@ public class MonInformMgr : MonoBehaviour, IButtonClick
                 break;
 
             case ButtonList.BackButton:     //돌아가기 클릭 시
-               SceneManager.LoadScene(SceneList.MyRoomScene.ToString());     //MyRoomScene으로 이동
+                SceneManager.LoadScene(SceneList.MyRoomScene.ToString());     //MyRoomScene으로 이동
                 break;               
         }
 

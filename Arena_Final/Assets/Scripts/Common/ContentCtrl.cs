@@ -38,7 +38,7 @@ public class ContentCtrl : MonoBehaviour, IPointerDownHandler
             Instantiate(monStore.monSlot[PlayerInfo.MonList[i].starForce], transform).tag = MonSlotTag.Content.ToString();    //몬스터 슬롯 생성 및 태그변경              
 
         calcHeight = (Camera.main.ViewportToScreenPoint(new Vector3(1, 1, 0)).y * GetComponent<RectTransform>().rect.height) / 720;     //DragSlot 생성을 위한 높이 계산
-        StartCoroutine(SaveDeckSettings());     //저장된 덱 배치 함수 실행
+        StartCoroutine(LoadDeck());     //저장된 덱 불러오기 코루틴 실행
     }
 
     private void Update()
@@ -83,7 +83,7 @@ public class ContentCtrl : MonoBehaviour, IPointerDownHandler
         startSlotIndex = eventData.pointerCurrentRaycast.gameObject.transform.GetSiblingIndex();    //처음 선택한 몬스터슬롯의 자식번호 가져오기
     }
 
-    private IEnumerator SaveDeckSettings()   //저장된 덱 배치 함수
+    private IEnumerator LoadDeck()   //저장된 덱 불러오기 코루틴
     {
         if (!System.Enum.TryParse(SceneManager.GetActiveScene().name, out SceneList curScene))  //현재 씬의 이름을 SceneList 형식으로 변환(실패 시 코루틴 종료)
             yield break;
