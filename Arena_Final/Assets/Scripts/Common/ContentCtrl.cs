@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 //몬스터 슬롯을 드래그앤 드랍 하기 위한 스크립트
 //스크롤뷰 하위의 Content오브젝트에 붙여서 사용
@@ -28,7 +29,7 @@ public class ContentCtrl : MonoBehaviour, IPointerDownHandler
     private void Awake()
     {
         FindClass.CurContent = this;       //현재 씬의 Content오브젝트의 ContentCtrl을 저장
-        parentScroll = GetComponentInParent<ScrollRect>();  //부모이 ScrollRect 컴포넌트 가져오기        
+        parentScroll = GetComponentInParent<ScrollRect>();  //부모이 ScrollRect 컴포넌트 가져오기
     }
 
     private void Start()
@@ -37,7 +38,6 @@ public class ContentCtrl : MonoBehaviour, IPointerDownHandler
             Instantiate(monStore.monSlot[PlayerInfo.MonList[i].starForce], transform).tag = MonSlotTag.Content.ToString();    //몬스터 슬롯 생성 및 태그변경              
 
         calcHeight = (Camera.main.ViewportToScreenPoint(new Vector3(1, 1, 0)).y * GetComponent<RectTransform>().rect.height) / 720;     //DragSlot 생성을 위한 높이 계산
-
         StartCoroutine(SaveDeckSettings());     //저장된 덱 배치 함수 실행
     }
 
@@ -88,59 +88,36 @@ public class ContentCtrl : MonoBehaviour, IPointerDownHandler
         if (!System.Enum.TryParse(SceneManager.GetActiveScene().name, out SceneList curScene))  //현재 씬의 이름을 SceneList 형식으로 변환(실패 시 코루틴 종료)
             yield break;
 
-        yield return new WaitForFixedUpdate();      //Update() 전에 실행되도록
+        yield return new WaitForFixedUpdate();      //다음 Update() 전에 실행되도록 하기
 
-        List<MonsterName> a_Deck;           //저장된 덱 리스트를 받을 변수
-        List<int> a_StarF;                  //저장된 덱의 성급 리스트를 받을 변수
-        Stack<Transform> a_MonSlotStack = new();    //저장된 덱과 일치하는 몬스터 정보를 가진 MonSlot의 Transform을 저장할 변수
-
-        switch (curScene)        //각 씬의 맞는 덱 가져오기
+        var (a_CurDeck, a_DeckStarF) = curScene switch  //현재 열린 씬에 맞는 덱 불러오기(현재 선택된 덱, 현재 선택된 덱의 성급)
         {
-            case SceneList.InGameScene:
-                a_Deck = PlayerInfo.CombatDeck;
-                a_StarF = PlayerInfo.CombatStarF;
-                break;
+            SceneList.InGameScene => (PlayerInfo.CombatDeck, PlayerInfo.CombatStarF),
+            SceneList.RankGameScene => (PlayerInfo.RankDeck, PlayerInfo.RankStarF),
+            SceneList.DefDeckScene => (PlayerInfo.DefDeck, PlayerInfo.DefStarF),
+            _ => (null, null)
+        };
 
-            case SceneList.RankGameScene:
-                a_Deck = PlayerInfo.RankDeck;
-                a_StarF = PlayerInfo.RankStarF;
-                break;
+        if (a_CurDeck == null || a_DeckStarF == null) yield break;  //불러올 덱이 없으면 코루틴 종료
 
-            case SceneList.DefDeckScene:
-                a_Deck = PlayerInfo.DefDeck;
-                a_StarF = PlayerInfo.DefStarF;
-                break;
+        //불러온 덱과 일치하는 몬스터 정보를 가진 MonSlot 게임오브젝트의 컨트롤 스크립트를 저장할 리스트(뒤쪽 코드에서 MonSlot 게임오브젝트를 앞으로 당겨오는데 사용)
+        List<MonSlotCtrl> a_DeckMSCList = new();
 
-            default:
-                a_Deck = null;
-                a_StarF = null;
-                break;
-        }
-
-        if (a_Deck == null || a_StarF == null)
-            yield break;
-
-        for (int i = 0; i < a_Deck.Count; i++)   //불러올 덱의 몬스터 수 만큼 반복
+        for (int i = 0; i < a_CurDeck.Count; i++)    //불러올 덱의 전체 몬스터 수 만큼 반복
         {
-            if (a_Deck[i].Equals(MonsterName.None))     //i번 덱에 저장된 이름이 None(비어있음)이라면 넘어가기
+            if (a_CurDeck[i].Equals(MonsterName.None))   //i번 덱에 저장된 이름이 None(비어있음)이라면 넘어가기
                 continue;
 
-            for (int k = 0; k < PlayerInfo.MonList.Count; k++)    //유저가 보유한 전체 몬스터 수만큼 반복
-            {
-                //i번 덱과 몬스터이름,성급이 같은 몬스터가 전체 몬스터 리스트의 k번에 있다면(같은 몬스터라면) ex)i = 3번덱 k = 0번 몬스터리스트                
-                if (a_Deck[i].Equals(PlayerInfo.MonList[k].monName) && a_StarF[i].Equals(PlayerInfo.MonList[k].starForce))
-                {
-                    Transform a_MonSlotTr = transform.GetChild(k);  //하위의 MonSlot들(전체 몬스터 리스트와 같음)중 k번의 MonSlot의 Transform을 가져오기
-                    a_MonSlotStack.Push(a_MonSlotTr);               //k번 MonSlot의 Transform을 Stack에 저장
-                    FindClass.CurSetPoint.MonObjCreate(i, a_MonSlotTr.GetComponent<MonSlotCtrl>());    //이 씬의 SetPoint에 몬스터 오브젝트 생성을 요청(i번 포인트 위치에 k번 MonSlot의 정보 넘겨주기)
-                    break;
-                }
-                else //i번 덱과 k번 몬스터 리스트의 몬스터이름 혹은 성급이 다르면(같은 몬스터가 아니면) 넘어가기
-                    continue;
-            }
+            //유저가 보유한 전체 몬스터 목록에서 이름과 성급이 일치하는 가장 첫번째 몬스터의 Index 가져오기
+            int FIndex = PlayerInfo.MonList.FindIndex(MonStat => MonStat.monName.Equals(a_CurDeck[i]) && MonStat.starForce.Equals(a_DeckStarF[i]));
+            MonSlotCtrl a_MSC = transform.GetChild(FIndex).GetComponent<MonSlotCtrl>();    //찾은 Index와 일치하는 위치에있는 MonSlot게임오브젝트의 컨트롤 스크립트 가져오기
+            a_DeckMSCList.Add(a_MSC);       //리스트에 추가
+            FindClass.CurSetPoint.MonObjCreate(i, a_MSC);  //현재 씬의 SetPoint에 몬스터 오브젝트 생성을 요청(i번 포인트 위치에 FIndex번 MonSlot의 정보 넘겨주기)
         }
 
-        while (a_MonSlotStack.Count > 0)        //위에서 얻은 Stack 수만큼 반복
-            a_MonSlotStack.Pop().SetAsFirstSibling();   //MonSlot의 순서 변경        
+        a_DeckMSCList = a_DeckMSCList.OrderByDescending((MSC) => MSC.MSCMonStat.starForce).ThenByDescending((MSC) => MSC.MSCMonStat.monName).ToList();  //리스트 정렬
+
+        for (int i = 0; i < a_DeckMSCList.Count; i++)
+            a_DeckMSCList[i].transform.SetSiblingIndex(i);      //리스트를 이용해 MonSlot 게임오브젝트의 순서 변경(불러오기한 몬스터가 앞쪽으로 위치하도록)
     }
 }
