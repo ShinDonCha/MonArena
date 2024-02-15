@@ -14,7 +14,7 @@ public class GameMgr : NetworkMgr, IButtonClick, ICMCList
     [SerializeField]
     private GameObject standByUI = null;      //대기상태 중 표시해 줄 UI들이 모인 곳, UICanvas의 StandByUI 연결
     [SerializeField]
-    private GameObject fightUI = null;        //전투 시작 시 애니메이션을 띄워주기 위한 UI
+    private GameObject fightUI = null;        //전투 시작 시 애니메이션을 띄워주기 위한 UICanvas의 FightUI 연결
     [SerializeField]
     private GameObject combatUI = null;       //전투상태 중 표시해 줄 UI들이 모인곳, UICanvas의 CombatUI 연결
     //------------- UICanvas의 UI탭들(InGameScene과 RankGameScene에서만 사용)
@@ -29,7 +29,7 @@ public class GameMgr : NetworkMgr, IButtonClick, ICMCList
     private int numofEMon = 0;           //적의 몬스터 숫자 (전투 시작 시 적 진열에 배치된 몬스터 수만큼 숫자가 정해지고 0이되면 전투 종료)
 
     private SceneList curSceneName;     //현재 씬의 이름을 담을 변수
-
+        
     private void Awake()
     {
         Instance = this;
@@ -76,7 +76,7 @@ public class GameMgr : NetworkMgr, IButtonClick, ICMCList
 
             case ButtonList.StartButton:     //전투시작 버튼
                 EffSoundCtrl.Instance.EffSoundPlay(EffSoundList.Fight);        //전투시작 효과음 재생
-                StartCoroutine(StartSettings());
+                StartCoroutine(StartSettingCo());    //전투 시작시 필요한 세팅(배치저장, UI변경, 전투시작요청)이 들어있는 코루틴 실행
                 break;
         }
     }
@@ -99,43 +99,34 @@ public class GameMgr : NetworkMgr, IButtonClick, ICMCList
     #endregion -------------------- 인터페이스 --------------------
 
     #region ------------------- 전투 시작시 실행 함수 -------------------
-    private IEnumerator StartSettings()     //전투시작 시 실행해야할 것들을 모아놓은 함수(배치저장, UI변경)
+    private IEnumerator StartSettingCo()     //전투시작 시 실행해야할 것들을 모아놓은 코루틴(배치저장, UI변경)
     {
         //--------------------------- 덱 저장 ---------------------------
-        List<MonsterName> a_NameDeck = new();
-        List<int> a_StarDeck = new();
-        PacketType a_PType = PacketType.CombatDeck;
-
-        switch (curSceneName)
+        //전투가 시작된 씬에 따라 배치 저장요청
+        (List<MonsterName> a_NameDeck, List<int> a_StarDeck, PacketType a_PType) = curSceneName switch  //현재배치된 몬스터를 저장할 덱, 현재배치된 몬스터 성급을 저장할 덱, NetworkMgr에 요청할 패킷이름
         {
-            case SceneList.InGameScene:
-                a_NameDeck = PlayerInfo.CombatDeck;
-                a_StarDeck = PlayerInfo.CombatStarF;
-                a_PType = PacketType.CombatDeck;
-                break;
+            SceneList.InGameScene => (PlayerInfo.CombatDeck, PlayerInfo.CombatStarF, PacketType.CombatDeck),
+            SceneList.RankGameScene => (PlayerInfo.RankDeck, PlayerInfo.RankStarF, PacketType.RankDeck),
+            _ => (null, null, PacketType.NickName)
+        };
 
-            case SceneList.RankGameScene:
-                a_NameDeck = PlayerInfo.RankDeck;
-                a_StarDeck = PlayerInfo.RankStarF;
-                a_PType = PacketType.RankDeck;
-                break;
-        }
+        if (a_NameDeck == null || a_StarDeck == null) yield break;      //잘못된 실행일 경우 코루틴 종료(오류방지)
 
         a_NameDeck.Clear();    //덱 리스트 전부 삭제 (다시 저장하기 위해서 이전 목록 삭제)
         a_StarDeck.Clear();    //덱 성급 리스트 전부 삭제 (다시 저장하기 위해서 이전 목록 삭제)
 
-        for (int i = 0; i < FindClass.CurSetPoint.transform.childCount; i++)
+        for (int i = 0; i < FindClass.CurSetPoint.transform.childCount; i++)    //SetPoint 오브젝트 하위의 Point 오브젝트 수 만큼 반복
         {
             FindClass.CurSetPoint[i].GetChild(0).gameObject.SetActive(false);   //Point의 이미지를 나타내는 게임 오브젝트 끄기
 
-            if (FindClass.CurSetPoint[i].childCount > 1)    //활성화된(몬스터가 존재하는) Point만 실행
+            if (FindClass.CurSetPoint[i].childCount > 1)    //활성화된(몬스터가 존재하는) Point일 경우
             {
                 a_NameDeck.Add(FindClass.CurSetPoint.GetPointMSC(i).MSCMonStat.monName);    //해당 몬스터의 이름을 저장
                 a_StarDeck.Add(FindClass.CurSetPoint.GetPointMSC(i).MSCMonStat.starForce);  //해당 몬스터의 성급을 저장
 
-                myCMCList.Add(FindClass.CurSetPoint[i].GetComponentInChildren<CmnMonCtrl>());   //배치된 몬스터들의 CommonMonCtrl을 리스트에 추가
+                myCMCList.Add(FindClass.CurSetPoint[i].GetComponentInChildren<CmnMonCtrl>());   //배치된 몬스터들의 CmnMonCtrl을 리스트에 추가
             }
-            else
+            else        //활성화 되지않은(몬스터가 없는)Point일 경우
             {
                 a_NameDeck.Add(MonsterName.None);   //비어있음을 저장
                 a_StarDeck.Add(-1);                 //비어있음을 저장
@@ -198,7 +189,7 @@ public class GameMgr : NetworkMgr, IButtonClick, ICMCList
 
     private IEnumerator EndAction()   //ResultScene으로 넘어갈 때 효과를 주기위한 코루틴
     {
-        myCMCList.Sort((a, b) => -a.TotalDmg.CompareTo((b.TotalDmg)));      //총 대미지가 높은 순서대로 정렬
+        myCMCList.Sort((a, b) => -a.TotalDmg.CompareTo(b.TotalDmg));      //총 대미지가 높은 순서대로 정렬
 
         while (Time.timeScale > 0.3f)   //일정 수치만큼 느려질 때까지 반복
         {
